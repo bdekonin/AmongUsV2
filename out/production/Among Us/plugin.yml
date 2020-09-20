@@ -1,0 +1,9 @@
+main: me.Dopeey.AmongUs.Main
+name: AmongUs
+version: 0.1
+api-version: 1.13
+description: Among Us in Minecraft
+author: Dopeey
+
+commands:
+  inventory:
