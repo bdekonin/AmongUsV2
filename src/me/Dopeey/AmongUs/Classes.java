@@ -12,19 +12,26 @@ import org.bukkit.inventory.meta.ItemMeta;
 public class Classes {
 
 	// Globals
-	final private int inventorySize = 36;
-	private ItemStack buffer = new ItemStack(Material.CLAY_BALL, 1);
-	final private String bufferName = ChatColor.GRAY + "No Usage";
+		final private int inventorySize = 36;
+		private ItemStack buffer = new ItemStack(Material.CLAY_BALL, 1);
+		final private String bufferName = ChatColor.GRAY + "No Usage";
 
 	// Objects
-	private final Imposter imposter;
-	private final Innocent innocent;
+		private final Imposter imposter;
+		private final Innocent innocent;
+
+	// Materials for Classes
+		final private Material useItem = Material.BRICK; // Both
+		final private Material reportItem = Material.BOOK; // Both
+		final private Material killItem = Material.NETHERITE_AXE; // Imposter
+		final private Material ventItem = Material.ENDER_PEARL; // Imposter
+		final private Material sabotageItem = Material.TNT; // Imposter
 
 
 	// Constructor
 	public Classes() {
-		this.imposter = new Imposter();
 		this.innocent = new Innocent();
+		this.imposter = new Imposter(this.innocent, this.killItem, this.sabotageItem, this.ventItem);
 
 		this.setName();
 	}
@@ -53,28 +60,36 @@ public class Classes {
 	}
 }
 
-
-// 0: Use. 1: Report. 2: Kill. 3: Sabotage. 4: Vent
-
 // Imposter
-// 1: Kill. 2: Report. 3: Sabotage
+// 1 kill. 2 vent. 3 report. 4 sabotage
+// 1 kill. 2 Use. 3 report. 4 sabotage
 
 // Innocent
-// 2: Report
+// 1. Use 2: Report
+
 class Imposter {
+	// Globals
+		private Innocent innocent;
 	// Items
-		final private ItemStack kill = new ItemStack(Material.NETHERITE_AXE, 1);
+		final private ItemStack kill;
 		final private String killName = ChatColor.DARK_RED + "Kill";
-		final private ItemStack sabotage = new ItemStack(Material.IRON_HORSE_ARMOR, 1);
+
+		final private ItemStack sabotage;
 		final private String sabotageName = ChatColor.AQUA + "Sabotage";
-		final private ItemStack vent = new ItemStack(Material.ENDER_PEARL, 1);
+
+		final private ItemStack vent;
 		final private String ventName = ChatColor.YELLOW + "Vent";
 
 	// Constructor
-	public Imposter() {
+	public Imposter(Innocent innocent, Material kill, Material sabotage, Material vent) {
 		this.setKill();
 		this.setSabotage();
 		this.setVent();
+
+		this.innocent = innocent;
+		this.kill = new ItemStack(kill, 1);
+		this.sabotage = new ItemStack(sabotage, 1);
+		this.vent = new ItemStack(vent, 1);
 	}
 
 	// Main Functions
