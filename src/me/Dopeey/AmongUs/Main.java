@@ -19,7 +19,7 @@ public class Main extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		Bukkit.broadcastMessage("Among Us has been Enabled!");
-		Bukkit.getServer().getPluginManager().registerEvents(this, this);
+		Bukkit.getServer(). getPluginManager().registerEvents(this, this);
 	}
 	@Override
 	public void onDisable() {
@@ -34,7 +34,26 @@ public class Main extends JavaPlugin implements Listener {
 			if (args[0].equalsIgnoreCase("imposter")) {
 				Player player = (Player) sender;
 				player.getInventory().setContents(classes.getDefaultInventory().getContents());
+				classes.getImposter().kill(player);
+				classes.getImposter().vent(player);
+				classes.getImposter().report(player);
+				classes.getImposter().sabotage(player);
+
 			}
+			if (args[0].equalsIgnoreCase("innocent")) {
+				Player player = (Player) sender;
+				player.getInventory().setContents(classes.getDefaultInventory().getContents());
+				classes.getInnocent().use(player);
+				classes.getInnocent().report(player);
+
+			}
+		}
+		else if (label.equalsIgnoreCase("print")) {
+			Player player = (Player) sender;
+
+			player.sendMessage("vec: ");
+			player.sendMessage("" + player.getLocation().getDirection());
+			player.sendMessage(" ");
 		}
 		return false;
 	}

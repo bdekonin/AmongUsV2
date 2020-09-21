@@ -30,7 +30,7 @@ public class Classes {
 
 	// Constructor
 	public Classes() {
-		this.innocent = new Innocent();
+		this.innocent = new Innocent(this.useItem, this.reportItem);
 		this.imposter = new Imposter(this.innocent, this.killItem, this.sabotageItem, this.ventItem);
 
 		this.setName();
@@ -61,11 +61,11 @@ public class Classes {
 }
 
 // Imposter
-// 1 kill. 2 vent. 3 report. 4 sabotage
-// 1 kill. 2 Use. 3 report. 4 sabotage
+// 0 kill. 1 vent. 2 report. 3 sabotage
+// 0 kill. 1 Use. 2 report. 3 sabotage
 
 // Innocent
-// 1. Use 2: Report
+// 0. Use 1: Report
 
 class Imposter {
 	// Globals
@@ -82,20 +82,33 @@ class Imposter {
 
 	// Constructor
 	public Imposter(Innocent innocent, Material kill, Material sabotage, Material vent) {
-		this.setKill();
-		this.setSabotage();
-		this.setVent();
-
 		this.innocent = innocent;
 		this.kill = new ItemStack(kill, 1);
 		this.sabotage = new ItemStack(sabotage, 1);
 		this.vent = new ItemStack(vent, 1);
+
+		this.setKill();
+		this.setSabotage();
+		this.setVent();
 	}
 
 	// Main Functions
-	public void vent(Player player) {
-		player.getInventory().setItem(4, this.getVent());
+	public void kill(Player player) {
+		player.getInventory().setItem(0, this.getKill());
 	}
+	public void use(Player player) {
+		player.getInventory().setItem(1, this.innocent.getUse());
+	}
+	public void vent(Player player) {
+		player.getInventory().setItem(1, this.getVent());
+	}
+	public void report(Player player) {
+		player.getInventory().setItem(2, this.innocent.getReport());
+	}
+	public void sabotage(Player player) {
+		player.getInventory().setItem(3, this.getSabotage());
+	}
+
 
 	// Getters
 	public ItemStack getKill() {
@@ -130,21 +143,28 @@ class Imposter {
 
 class Innocent {
 	// Items
-		private ItemStack use = new ItemStack(Material.BRICK, 1);
+		private ItemStack use;
 		private String useName = ChatColor.GREEN + "Use";
-		private ItemStack report = new ItemStack(Material.EMERALD, 1); // temp item
+		private ItemStack report;
 		private String reportName = ChatColor.DARK_PURPLE + "Report";
 
 	// Constructor
-	public Innocent( ) {
+	public Innocent(Material use, Material report) {
+		this.use = new ItemStack(use, 1);
+		this.report = new ItemStack(report, 1);
+
 		this.setUse();
 		this.setReport();
+
 	}
 
 	// Main Functions
-	// blabla
-	// blabla
-	// blabla
+	public void use(Player player) {
+		player.getInventory().setItem(0, this.getUse());
+	}
+	public void report(Player player) {
+		player.getInventory().setItem(1, this.getReport());
+	}
 
 	// Getters
 	public ItemStack getUse() {
