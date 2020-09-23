@@ -6,5 +6,8 @@ description: Among Us in Minecraft
 author: Dopeey
 
 commands:
+  game:
   inventory:
-  print:
+  body:
+  bodyclear:
+  test:
