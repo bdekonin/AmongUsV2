@@ -15,7 +15,7 @@ public class Role {
 	}
 
 	// Getters
-	public boolean getImposter() {
+	public boolean isImposter() {
 		return this.isImposter;
 	}
 	public Player getPlayer() {

@@ -9,10 +9,15 @@ import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.Hash;
+import org.bukkit.entity.EnderPearl;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityInteractEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -139,31 +144,70 @@ public class Main extends JavaPlugin implements Listener {
 		this.list.clear();
 	}
 
-
-	// Button Functions
-	private void handleReport() {
-		if (this.gameStatus == false)
-			return ;
-
+	// Useful Functions
+	private Role getRoleOfPlayer(Player p) {
+		for (int i = 0; i < this.list.size(); i++) {
+			if (p.getUniqueId() == this.list.get(i).getPlayer().getUniqueId())
+				return this.list.get(i);
+		}
+		return null;
 	}
 
+	// 0 kill. 1 vent. 2 report. 3 sabotage
 	// Listeners
 	@EventHandler
 	public void onLook(PlayerMoveEvent event) {
 		if (this.gameStatus == false)
 			return ;
-		// Testing for Loom
-		Block blockLocation = event.getPlayer().getTargetBlock(null, 4);
-		if (blockLocation.getType() == Material.LOOM)
-			this.classes.getImposter().vent(event.getPlayer());
-		else if (this.bodies.isBody(event.getPlayer()))
-			this.classes.getImposter().report(event.getPlayer());
-		else
-			event.getPlayer().getInventory().setContents(this.classes.getDefaultInventory().getContents());
+		Player p = event.getPlayer();
+		Role role = this.getRoleOfPlayer(p);
+		if (role == null)
+			return ;
+
+		Block block = event.getPlayer().getTargetBlock(null, 4);
+		// Imposter
+		if (role.isImposter()) { // Imposter
+			// Kill
+			if (block.getType() == Material.OBSIDIAN)
+				this.classes.getImposter().kill(p);
+
+			// Vent
+			if (block.getType() == Material.LOOM) // Vent
+				this.classes.getImposter().vent(p);
+			else
+				this.classes.getImposter().removeVent(p);
+
+			// Report
+			if (this.bodies.isBody(p))
+				this.classes.getImposter().report(p);
+			else
+				this.classes.getImposter().removeReport(p);
+
+			// Sabotage
+			// blabla
+		}
+		else { // Innocent
+			// Use
+
+
+			// Report
+			if (this.bodies.isBody(p))
+				this.classes.getInnocent().report(p);
+			else
+				this.classes.getInnocent().removeReport(p);
+		}
+	}
+
+	@EventHandler
+	public void onThrow(ProjectileLaunchEvent event) {
+		if (event.getEntity() instanceof EnderPearl)
+			event.setCancelled(true);
 	}
 
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event) {
+		if (this.gameStatus == false)
+			return ;
 		ItemStack item = event.getItem();
 		if (item == null || item.getType() == Material.AIR)
 			return ;
@@ -172,5 +216,21 @@ public class Main extends JavaPlugin implements Listener {
 			p.sendMessage("report g");
 		else if (item.equals(this.classes.getImposter().getVent()))
 			p.sendMessage("vent g");
+	}
+
+	public void onPlayerClick(PlayerInteractEntityEvent event) {
+		if (this.gameStatus == false)
+			return ;
+		Player p = event.getPlayer();
+		if (this.getRoleOfPlayer(p).isImposter() == false) // if innocent tries killing
+			return ;
+		if (event.getRightClicked().getType() != EntityType.PLAYER) // type is not player
+			return ;
+
+		Player killer = p;
+		Player dead = (Player) event.getRightClicked();
+
+		Bukkit.broadcastMessage(killer.getName() + " killed " + dead.getName());
+		this.classes.getImposter().removeKill(killer);
 	}
 }

@@ -109,6 +109,22 @@ class Imposter {
 		player.getInventory().setItem(3, this.getSabotage());
 	}
 
+	// Clear Items
+	public void removeKill(Player player) {
+		player.getInventory().clear(0);
+	}
+	public void removeUse(Player player) {
+		player.getInventory().clear(1);
+	}
+	public void removeVent(Player player) {
+		player.getInventory().clear(1);
+	}
+	public void removeReport(Player player) {
+		player.getInventory().clear(2);
+	}
+	public void removeSabotage(Player player) {
+		player.getInventory().clear(3);
+	}
 
 	// Getters
 	public ItemStack getKill() {
@@ -164,6 +180,14 @@ class Innocent {
 	}
 	public void report(Player player) {
 		player.getInventory().setItem(1, this.getReport());
+	}
+
+	// Clear Item
+	public void removeUse(Player player) {
+		player.getInventory().clear(0);
+	}
+	public void removeReport(Player player) {
+		player.getInventory().clear(1);
 	}
 
 	// Getters
