@@ -26,12 +26,13 @@ public class Classes {
 		final private Material killItem = Material.NETHERITE_AXE; // Imposter
 		final private Material ventItem = Material.ENDER_PEARL; // Imposter
 		final private Material sabotageItem = Material.TNT; // Imposter
+		final private Material killBuff = Material.WHITE_STAINED_GLASS;
 
 
 	// Constructor
 	public Classes() {
 		this.innocent = new Innocent(this.useItem, this.reportItem);
-		this.imposter = new Imposter(this.innocent, this.killItem, this.sabotageItem, this.ventItem);
+		this.imposter = new Imposter(this.innocent, this.killItem, this.sabotageItem, this.ventItem, this.killBuff);
 
 		this.setName();
 	}
@@ -80,12 +81,15 @@ class Imposter {
 		final private ItemStack vent;
 		final private String ventName = ChatColor.YELLOW + "Vent";
 
+		final private Material killBuff;
+
 	// Constructor
-	public Imposter(Innocent innocent, Material kill, Material sabotage, Material vent) {
+	public Imposter(Innocent innocent, Material kill, Material sabotage, Material vent, Material killBuff) {
 		this.innocent = innocent;
 		this.kill = new ItemStack(kill, 1);
 		this.sabotage = new ItemStack(sabotage, 1);
 		this.vent = new ItemStack(vent, 1);
+		this.killBuff = killBuff;
 
 		this.setKill();
 		this.setSabotage();
@@ -135,6 +139,23 @@ class Imposter {
 	}
 	public ItemStack getSabotage() {
 		return this.sabotage;
+	}
+	public int getKillSlot() {
+		return 0;
+	}
+	public ItemStack getkillBuff(int amount, String displayName) {
+		if (amount < 1 || amount > 64)
+			throw new IllegalArgumentException("killBuff amount must be between 1-64");
+		if (displayName == null)
+			throw new IllegalArgumentException("killBuff displayName is null");
+		ItemStack item = new ItemStack(this.killBuff, amount);
+		ItemMeta meta = item.getItemMeta();
+		meta.setDisplayName(displayName);
+		item.setItemMeta(meta);
+		return item;
+	}
+	public ItemStack getkillBuff() {
+		return new ItemStack(this.killBuff, 1);
 	}
 
 	// Helpers

@@ -1,10 +1,7 @@
 package me.Dopeey.AmongUs;
 
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -21,7 +18,9 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -90,18 +89,8 @@ public class Main extends JavaPlugin implements Listener {
 		else if (label.equalsIgnoreCase("bodyclear"))
 			this.bodies.removeBodies();
 		else if (label.equalsIgnoreCase("test")) {
-			list.clear();
-			for (Player p : Bukkit.getOnlinePlayers())
-				list.add(new Role(p, false));
-			int num = ThreadLocalRandom.current().nextInt(0, list.size());
-			list.get(num).setImposter(true);
-
-
-			for (int i = 0; i < list.size(); i++) {
-				Player p = list.get(i).getPlayer();
-				Bukkit.broadcastMessage(p.getName() + " = " + list.get(i).getImposterString() + " num = " + num);
-			}
-			Bukkit.broadcastMessage(ChatColor.GOLD + "----");
+			Player p = (Player) sender;
+			this.setKillTimer(p, this.getRoleOfPlayer(p));
 		}
 		return false;
 	}
@@ -111,6 +100,7 @@ public class Main extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.YELLOW + "starting");
 			if (this.gameStatus == true) {
 				sender.sendMessage(ChatColor.YELLOW + "Game Already Started!");
+				return ;
 			}
 			this.startGame(sender);
 		}
@@ -118,6 +108,7 @@ public class Main extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.YELLOW + "stopping");
 			if (this.gameStatus == false) {
 				sender.sendMessage(ChatColor.YELLOW + "Game Already stopped!");
+				return ;
 			}
 			this.stopGame(sender);
 		}
@@ -133,6 +124,58 @@ public class Main extends JavaPlugin implements Listener {
 		// Init objects
 		this.classes = new Classes();
 		this.bodies = new Deadbodies();
+
+
+		// Set Colors
+		this.list.clear();
+		for (Player p : Bukkit.getOnlinePlayers()) // adding players
+			this.list.add(new Role(p, false));
+
+		int num = 0;
+		// change to amount of imposters
+		for (int i = 0; i < 1; i++) {
+			num = ThreadLocalRandom.current().nextInt(0, this.list.size());
+			if (!this.list.get(num).isImposter())
+				this.list.get(num).setImposter(true);
+			else
+				i--;
+		}
+
+		ArrayList<Color> colorList = new ArrayList<Color>();
+
+		colorList.add(Color.AQUA);
+		colorList.add(Color.BLACK);
+		colorList.add(Color.BLUE);
+		colorList.add(Color.FUCHSIA);
+		colorList.add(Color.GRAY);
+		colorList.add(Color.GREEN);
+		colorList.add(Color.LIME);
+		colorList.add(Color.MAROON);
+		colorList.add(Color.NAVY);
+		colorList.add(Color.OLIVE);
+		colorList.add(Color.ORANGE);
+		colorList.add(Color.PURPLE);
+		colorList.add(Color.RED);
+		colorList.add(Color.SILVER);
+		colorList.add(Color.TEAL);
+		colorList.add(Color.YELLOW);
+		colorList.add(Color.WHITE);
+
+		ArrayList<String> stringList = new ArrayList<String>();
+
+		num = 0;
+		for (int i = 0; i < this.list.size(); i++) {
+			num = ThreadLocalRandom.current().nextInt(0, colorList.size());
+			Color c = colorList.get(num);
+			if (this.hasColorBeenUsed(c))
+				continue;
+			this.list.get(i).setColor(c);
+		}
+
+		for (int i = 0; i < list.size(); i++) {
+			Player p = list.get(i).getPlayer();
+			Bukkit.broadcastMessage(p.getName() + " " + list.get(i).getImposterString() + ", Color = " + this.getColorName(this.getRoleOfPlayer(p).getColor()));
+		}
 	}
 	private void stopGame(CommandSender sender) {
 		this.gameStatus = false;
@@ -143,28 +186,7 @@ public class Main extends JavaPlugin implements Listener {
 
 		this.list.clear();
 	}
-
-	// Useful Functions
-	private Role getRoleOfPlayer(Player p) {
-		for (int i = 0; i < this.list.size(); i++) {
-			if (p.getUniqueId() == this.list.get(i).getPlayer().getUniqueId())
-				return this.list.get(i);
-		}
-		return null;
-	}
-
-	// 0 kill. 1 vent. 2 report. 3 sabotage
-	// Listeners
-	@EventHandler
-	public void onLook(PlayerMoveEvent event) {
-		if (this.gameStatus == false)
-			return ;
-		Player p = event.getPlayer();
-		Role role = this.getRoleOfPlayer(p);
-		if (role == null)
-			return ;
-
-		Block block = event.getPlayer().getTargetBlock(null, 4);
+	private void setInventory(Block block,  Role role, Player p) {
 		// Imposter
 		if (role.isImposter()) { // Imposter
 			// Kill
@@ -197,6 +219,92 @@ public class Main extends JavaPlugin implements Listener {
 				this.classes.getInnocent().removeReport(p);
 		}
 	}
+	private void setKillTimer(Player p, Role role) {
+		if (role.isImposter() == false)
+			return ;
+		if (p.getInventory().getItem(0) != null)
+			return;
+		new SelfCancelingTask(this, 25, p).runTaskTimer(this, 0, 20L);
+	}
+
+	// Useful Functions
+	public Role getRoleOfPlayer(Player p) {
+		for (int i = 0; i < this.list.size(); i++) {
+			if (p.getUniqueId() == this.list.get(i).getPlayer().getUniqueId())
+				return this.list.get(i);
+		}
+		return null;
+	}
+	private boolean hasColorBeenUsed(Color color) {
+		for (int i = 0; i < this.list.size(); i++) {
+			if (this.list.get(i).getColor() == null)
+				return false;
+			if (this.list.get(i).getColor().asRGB() == color.asRGB())
+				return true;
+		}
+		return false;
+	}
+	public String getColorName(Color color) {
+		if (color == null)
+			return "error";
+		if (color.asRGB() == Color.AQUA.asRGB())
+			return "aqua";
+		else if (color.asRGB() == Color.BLACK.asRGB())
+			return "black";
+		else if (color.asRGB() == Color.BLUE.asRGB())
+			return "blue";
+		else if (color.asRGB() == Color.FUCHSIA.asRGB())
+			return "fuchsia";
+		else if (color.asRGB() == Color.GRAY.asRGB())
+			return "gray";
+		else if (color.asRGB() == Color.GREEN.asRGB())
+			return "green";
+		else if (color.asRGB() == Color.LIME.asRGB())
+			return "lime";
+		else if (color.asRGB() == Color.MAROON.asRGB())
+			return "maroon";
+		else if (color.asRGB() == Color.NAVY.asRGB())
+			return "navy";
+		else if (color.asRGB() == Color.OLIVE.asRGB())
+			return "olive";
+		else if (color.asRGB() == Color.ORANGE.asRGB())
+			return "orange";
+		else if (color.asRGB() == Color.PURPLE.asRGB())
+			return "purple";
+		else if (color.asRGB() == Color.RED.asRGB())
+			return "red";
+		else if (color.asRGB() == Color.SILVER.asRGB())
+			return "silver";
+		else if (color.asRGB() == Color.TEAL.asRGB())
+			return "teal";
+		else if (color.asRGB() == Color.YELLOW.asRGB())
+			return "yellow";
+		else if (color.asRGB() == Color.WHITE.asRGB())
+			return "white";
+		else
+			return null;
+	}
+	public Classes getClasses() {
+		return this.classes;
+	}
+	public Deadbodies getBodies() {
+		return this.bodies;
+	}
+
+	// 0 kill. 1 vent. 2 report. 3 sabotage
+	// Listeners
+	@EventHandler
+	public void onLook(PlayerMoveEvent event) {
+		if (!this.gameStatus)
+			return ;
+		Player p = event.getPlayer();
+		Role role = this.getRoleOfPlayer(p);
+		if (role == null)
+			return ;
+		Block block = event.getPlayer().getTargetBlock(null, 4);
+		this.setInventory(block, role, p);
+		this.setKillTimer(p, this.getRoleOfPlayer(p));
+	}
 
 	@EventHandler
 	public void onThrow(ProjectileLaunchEvent event) {
@@ -206,8 +314,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onRightClick(PlayerInteractEvent event) {
-		if (this.gameStatus == false)
-			return ;
+		if (!this.gameStatus) {
+			return;
+		}
 		ItemStack item = event.getItem();
 		if (item == null || item.getType() == Material.AIR)
 			return ;
@@ -218,19 +327,39 @@ public class Main extends JavaPlugin implements Listener {
 			p.sendMessage("vent g");
 	}
 
+	@EventHandler
 	public void onPlayerClick(PlayerInteractEntityEvent event) {
-		if (this.gameStatus == false)
-			return ;
+		if (!this.gameStatus) {
+			Bukkit.broadcastMessage("false");
+			return;
+		}
 		Player p = event.getPlayer();
-		if (this.getRoleOfPlayer(p).isImposter() == false) // if innocent tries killing
+		if (!this.getRoleOfPlayer(p).isImposter()) {// if innocent tries killing
+			Bukkit.broadcastMessage("false");
+			return;
+		}
+		if (!(p.getInventory().getItemInMainHand().equals(this.classes.getImposter().getKill()))) {
+			Bukkit.broadcastMessage("false hand");
 			return ;
-		if (event.getRightClicked().getType() != EntityType.PLAYER) // type is not player
+		}
+		if (event.getRightClicked().getType() != EntityType.PLAYER)  {// type is not player
+			Bukkit.broadcastMessage("not player");
+			return;
+		}
+		if (this.getRoleOfPlayer((Player) event.getRightClicked()).isImposter() == true) {
+			Bukkit.broadcastMessage("rightclicker is impost");
 			return ;
+		}
 
 		Player killer = p;
 		Player dead = (Player) event.getRightClicked();
+
+		this.getRoleOfPlayer(dead).setDead(); // player has died
+		dead.setGameMode(GameMode.SPECTATOR);
+		this.bodies.spawnBody(this.getRoleOfPlayer(dead).getColor(), dead.getLocation());
 
 		Bukkit.broadcastMessage(killer.getName() + " killed " + dead.getName());
 		this.classes.getImposter().removeKill(killer);
 	}
 }
+
